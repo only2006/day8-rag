@@ -1,0 +1,10 @@
+[project]
+name = "day8-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pypdf>=6.21.4",
+    "python-docx>=1.2.0",
+]
