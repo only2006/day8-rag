@@ -78,12 +78,34 @@ def main() -> int:
         row += f"{results[label]['MRR']:>10.2f}"
         print(row)
 
-    base = results["纯向量"]["Hit@3"]
-    best_label = max(METHODS, key=lambda m: results[m]["Hit@3"])
-    best = results[best_label]["Hit@3"]
+    # 按「Hit@3 → Hit@1 → MRR」排序选出最佳方法
+    best_label = max(
+        METHODS,
+        key=lambda m: (results[m]["Hit@3"], results[m]["Hit@1"], results[m]["MRR"]),
+    )
+    base = results["纯向量"]
+    best = results[best_label]
 
-    print(f"\n结论：Hit@3 从 {base:.0f}%（纯向量）提升到 {best:.0f}%（{best_label}）")
-    print(f"      小幅提示：Hit@k 是「前 k 条里有答案」的比例，MRR 是「答案排得多靠前」")
+    print("      提示：Hit@k 是「前 k 条里有答案」的比例，MRR 是「答案排得多靠前」")
+
+    if base["Hit@3"] >= 85:
+        print(f"\n[WARN] 基线 Hit@3 已达 {base['Hit@3']:.0f}%，召回层面接近天花板。")
+        print("       Hit@3 测不出差异时，要看 Hit@1 和 MRR —— 它们反映「排序质量」。")
+
+    print(f"\n最佳方法：{best_label}")
+    print(f"  Hit@3  {base['Hit@3']:>5.0f}% → {best['Hit@3']:>5.0f}%   "
+          f"({best['Hit@3'] - base['Hit@3']:+.0f}pp)")
+    print(f"  Hit@1  {base['Hit@1']:>5.0f}% → {best['Hit@1']:>5.0f}%   "
+          f"({best['Hit@1'] - base['Hit@1']:+.0f}pp)")
+    print(f"  MRR    {base['MRR']:>5.2f}  → {best['MRR']:>5.2f}    "
+          f"({best['MRR'] - base['MRR']:+.2f})")
+
+    if best["Hit@1"] - base["Hit@1"] >= 5 or best["MRR"] - base["MRR"] >= 0.03:
+        print("\n结论：召回已到顶，但排序质量有实质提升 —— 优化点在精排，不在召回。")
+    elif best["Hit@3"] - base["Hit@3"] >= 5:
+        print("\n结论：召回层面有提升。")
+    else:
+        print("\n结论：各维度都没有可测的提升。")
 
     return 0
 

@@ -109,3 +109,25 @@ class Searcher:
                 }
             )
         return out
+
+    def hybrid_rerank(
+        self,
+        query: str,
+        k: int = 5,
+        pool: int = 10,
+    ) -> list[dict]:
+        """先混合召回 pool 条，再用 rerank 精排出前 k 条。"""
+        from rerank import rerank
+
+        candidates = self.hybrid(query, k=pool, pool=pool)
+        if not candidates:
+            return []
+
+        ranked = rerank(query, [c["text"] for c in candidates], top_n=k)
+
+        out: list[dict] = []
+        for idx, score in ranked:
+            item = dict(candidates[idx])
+            item["rerank"] = score
+            out.append(item)
+        return out
