@@ -1,16 +1,11 @@
 """三种检索器：纯向量 / BM25 / 混合（RRF 融合）。
 
-用法：
-    from retrieval import Searcher
-    s = Searcher()
-    s.vector("登录模块改了什么", k=3)
-    s.bm25_search("登录模块改了什么", k=3)
-    s.hybrid("登录模块改了什么", k=3)
-"""
+注意两个分数的区别（Day 12 踩过这个坑）：
+    score  = 该检索器自己的分数（向量是相似度，BM25 是 BM25 分，hybrid 是 RRF 分）
+    sim    = 向量相似度（0–1），只有它适合拿来跟阈值比较
 
-import json
-import os
-import urllib.request
+阈值判断一律用 sim，不要用 score。
+"""
 
 import chromadb
 import jieba
@@ -21,52 +16,10 @@ from embedding import embed_one
 DB_PATH = "./chroma_db"
 COLLECTION = "docs"
 
-# 硅基流动 rerank API（与 embedding 同源同鉴权，不下载模型）
-RERANK_URL = "https://api.siliconflow.cn/v1/rerank"
-RERANK_MODEL = "BAAI/bge-reranker-v2-m3"
-
 
 def tokenize(text: str) -> list[str]:
     """中文分词，BM25 需要词列表而不是整段字符串。"""
     return [t for t in jieba.lcut(text) if t.strip()]
-
-
-def rerank(query: str, candidates: list[dict], top_k: int = 5) -> list[dict]:
-    """用硅基流动 rerank API 对候选集重新打分，返回 top_k。candidates 一般 20-40 条。
-
-    不下载模型，复用 SILICONFLOW_API_KEY（与 embedding 同一套鉴权）。
-    """
-    if not candidates:
-        return []
-    key = os.getenv("SILICONFLOW_API_KEY")
-    if not key:
-        raise RuntimeError("未配置 SILICONFLOW_API_KEY，无法调用 rerank API")
-
-    texts = [c["text"] for c in candidates]
-    payload = json.dumps(
-        {
-            "model": RERANK_MODEL,
-            "query": query,
-            "documents": texts,
-            "return_documents": False,
-        }
-    ).encode("utf-8")
-    req = urllib.request.Request(
-        RERANK_URL,
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
-
-    scores = {r["index"]: float(r["relevance_score"]) for r in data["results"]}
-    for i, c in enumerate(candidates):
-        c["rerank_score"] = scores.get(i, 0.0)
-    return sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)[:top_k]
 
 
 class Searcher:
@@ -97,7 +50,13 @@ class Searcher:
             include=["documents", "metadatas", "distances"],
         )
         return [
-            {"id": cid, "text": txt, "meta": meta, "score": 1 - dist}
+            {
+                "id": cid,
+                "text": txt,
+                "meta": meta,
+                "score": 1 - dist,     # 向量：score 就是相似度
+                "sim": 1 - dist,
+            }
             for cid, txt, meta, dist in zip(
                 res["ids"][0], res["documents"][0],
                 res["metadatas"][0], res["distances"][0],
@@ -113,6 +72,7 @@ class Searcher:
                 "text": self.texts[i],
                 "meta": self.metas[i],
                 "score": float(scores[i]),
+                "sim": 0.0,            # BM25 没有相似度，置 0
             }
             for i in order[:k]
         ]
@@ -128,6 +88,8 @@ class Searcher:
         vec = self.vector(query, pool)
         kw = self.bm25_search(query, pool)
 
+        sim_map = {item["id"]: item["sim"] for item in vec}
+
         fused: dict[str, float] = {}
         for ranking in (vec, kw):
             for rank, item in enumerate(ranking, start=1):
@@ -135,19 +97,15 @@ class Searcher:
 
         ranked = sorted(fused.items(), key=lambda x: x[1], reverse=True)[:k]
         out: list[dict] = []
-        for cid, score in ranked:
+        for cid, rrf_score in ranked:
             i = self.pos[cid]
             out.append(
-                {"id": cid, "text": self.texts[i], "meta": self.metas[i], "score": score}
+                {
+                    "id": cid,
+                    "text": self.texts[i],
+                    "meta": self.metas[i],
+                    "score": rrf_score,               # RRF 分（0.01–0.05 量级）
+                    "sim": sim_map.get(cid, 0.0),     # 真实相似度（0–1），阈值用它
+                }
             )
         return out
-
-    def hybrid_rerank(self, query: str, k: int = 5, recall: int = 20) -> list[dict]:
-        """混合检索 + rerank：先 RRF 召回 recall 条，再用 rerank API 精排到 k 条。"""
-        cands = self.hybrid(query, recall)
-        try:
-            return rerank(query, cands, k)
-        except Exception as e:  # noqa: BLE001 —— 评测不应因单次 API 抖动而中断
-            print(f"[WARN] rerank 调用失败，回退到混合原始顺序：{e}")
-            return cands[:k]
-

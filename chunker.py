@@ -17,6 +17,9 @@ HEADING_RE = re.compile(
     r")"
 )
 
+# 结构切分时注入的标题前缀，形如【二、风险与问题】
+SECTION_PREFIX_RE = re.compile(r"^【(.+?)】")
+
 
 def _hard_split(text: str, size: int) -> list[str]:
     return [text[i:i + size] for i in range(0, len(text), size)]
@@ -123,9 +126,11 @@ def chunk_text(
             prefix = f"【{title}】\n" if title else ""
             budget = max(size - len(prefix), 100)
             pieces = _split_recursive(body, budget, DEFAULT_SEPARATORS)
+            # 只在同一节内部做重叠：跨节拼接会把上一节的内容带进来
+            pieces = _apply_overlap(pieces, overlap)
             for piece in pieces:
                 result.append(prefix + piece)
-        return _apply_overlap(result, overlap)
+        return result
 
     raise ValueError(f"未知策略：{strategy}")
 
@@ -145,13 +150,18 @@ def chunk_doc(
             continue
         pieces = chunk_text(page.text, size, overlap, strategy)
         for piece in pieces:
+            # 从块自己的【标题】前缀反推 section。
+            # 不能用 page.section：它只记了整篇的最后一个标题。
+            m = SECTION_PREFIX_RE.match(piece.strip())
+            section = m.group(1) if m else page.section
+
             chunks.append(
                 Chunk(
                     text=piece,
                     doc_id=doc.filename,
                     chunk_index=len(chunks),
                     page_no=page.page_no,
-                    section=page.section,
+                    section=section,
                     char_start=offset,
                     char_end=offset + len(piece),
                 )
