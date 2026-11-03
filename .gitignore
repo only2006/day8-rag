@@ -12,3 +12,6 @@ wheels/
 # 环境变量（含 API key，绝不能提交）
 .env
 .env.*
+
+# 生成的向量库（由 ingest.py 生成，可重跑再生，不入库）
+chroma_db/

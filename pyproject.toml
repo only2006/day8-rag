@@ -5,6 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "chromadb>=1.5.9",
+    "openai>=3.42.1",
     "pypdf>=6.21.4",
     "python-docx>=1.2.0",
+]
+
+[project.optional-dependencies]
+local = [
+    "sentence-transformers>=6.2.0",
 ]
