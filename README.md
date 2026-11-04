@@ -148,6 +148,32 @@ EMBED_MODEL=BAAI/bge-m3
 
 ⚠️ **密钥只放平台环境变量，不要写进 Dockerfile 或代码。**
 
+### 没有信用卡？用临时公网链接快速演示
+
+2026 年主流免费 PaaS（Render / Railway / Fly.io 等）大多要求绑卡验证，Hugging Face Spaces 的 Docker SDK 也需要 PRO 计划。如果只是想让面试官 / 同学**当场点开试一下**，可以用 **Cloudflare Quick Tunnel** 免账号、免信用卡拿到一个临时公网 HTTPS 链接。
+
+前提：本机装了 `cloudflared`（Windows 可用 `winget install --id Cloudflare.cloudflared`，或从 [官方 releases](https://github.com/cloudflare/cloudflared/releases) 下载 exe）。
+
+开两个终端：
+
+```powershell
+# 窗口 1：起服务（先按「本地运行」配好 .env）
+uv run uvicorn rag_api:app --port 8000
+
+# 窗口 2：开隧道
+cloudflared tunnel --url http://127.0.0.1:8000
+```
+
+窗口 2 会打印一个 `https://<随机>.trycloudflare.com`，手机切流量、或发给别人打开，就能上传文档并提问。已实测公网 `/health` 返回 `chunks=41`、手机流量下流式问答正常。
+
+| 限制 | 说明 |
+|---|---|
+| 电脑要常开 | 服务或隧道进程一关，链接立即失效 |
+| URL 每次随机 | 重启就变，且无可用性保证，**不要写死进简历**；需要长期链接请回到上面的平台部署 |
+| 链接是公开的 | 拿到的人都能提问、都会消耗 API 额度。项目内置**每 IP 20 次/分钟限流 + 同问题 10 分钟缓存**兜底，只发给需要看的人，别发公开群 |
+
+> 这条路径的价值在于：不依赖任何平台账号和付费方式，就能把「本地能跑」变成「别人能点开」。
+
 ---
 
 ## 踩过的坑
