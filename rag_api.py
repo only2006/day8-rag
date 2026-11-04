@@ -193,7 +193,11 @@ async def ask(req: AskRequest) -> StreamingResponse:
             yield sse({"type": "done"})
             return
 
-        top_sim = max(h.get("sim", 0.0) for h in hits)
+        # 拒答判定用「向量检索 top-1 的余弦相似度」，不与 hybrid/RRF 的融合排序耦合：
+        # 跨语言或弱关键词的相关块（如中文问题命中英文 PDF）会被 BM25 排到后面，
+        # 若只看 hybrid 结果的 max(sim) 会误拒。向量相似度本身才是可靠的语义信号。
+        vec_top = searcher.vector(req.question, 1)
+        top_sim = vec_top[0]["sim"] if vec_top else 0.0
 
         # 第一层拒答：检索层就没相关的内容，不调模型
         if top_sim < THRESHOLD:
@@ -201,6 +205,15 @@ async def ask(req: AskRequest) -> StreamingResponse:
             yield sse({"type": "delta", "text": REFUSAL})
             yield sse({"type": "done"})
             return
+
+        # 上下文以 hybrid 为主，并补入向量 top-k（按 id 去重），
+        # 保证语义最相关的块（跨语言命中的 PDF）一定进上下文。
+        seen = {h["id"] for h in hits}
+        for h in searcher.vector(req.question, req.k):
+            if h["id"] not in seen:
+                seen.add(h["id"])
+                hits.append(h)
+        hits.sort(key=lambda x: x.get("sim", 0.0), reverse=True)
 
         ctx, used = build_context(hits)
 
