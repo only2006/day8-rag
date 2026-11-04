@@ -1,0 +1,21 @@
+INFO:     Started server process [27940]
+INFO:     Waiting for application startup.
+17:30:25 | INFO     | 向量库为空，开始从 samples/ 初始化（首次启动会慢几秒）
+17:30:26 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:26 | INFO     |   gbk测试.txt → 29 字 / 1 块
+17:30:26 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:27 | INFO     |   notes.txt → 136 字 / 1 块
+17:30:27 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:27 | INFO     |   report.pdf → 269 字 / 1 块
+17:30:27 | WARNING  |   跳过 scan.pdf：解析后没有文字，可能是扫描件（需要 OCR）
+17:30:27 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:27 | INFO     |   weekly.docx → 138 字 / 4 块
+17:30:28 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:28 | INFO     |   智能家居中控手册.txt → 3087 字 / 20 块
+17:30:28 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:29 | INFO     |   智能摄像头使用FAQ.txt → 724 字 / 6 块
+17:30:29 | INFO     | HTTP Request: POST https://api.siliconflow.cn/v1/embeddings "HTTP/1.1 200 OK"
+17:30:29 | INFO     |   智能门锁安装与排障手册.txt → 963 字 / 8 块
+17:30:29 | INFO     | 初始化完成，共入库 7 份文档
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8012 (Press CTRL+C to quit)

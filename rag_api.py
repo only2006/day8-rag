@@ -17,14 +17,17 @@ SSE 事件协议（前端按 type 分发）：
 """
 
 import json
+import logging
 import os
-from dataclasses import asdict
+import time
+from collections import defaultdict, deque
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import chromadb
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
@@ -41,7 +44,7 @@ load_dotenv()
 MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.deepseek.com")
 
-DB_PATH = "./chroma_db"
+DB_PATH = os.getenv("DB_PATH", "./chroma_db")
 COLLECTION = "docs"
 
 UPLOAD_DIR = Path("data/uploads")
@@ -52,7 +55,115 @@ SIZE, OVERLAP, STRATEGY = 500, 0, "structure"
 THRESHOLD = 0.50
 BATCH = 32
 
-app = FastAPI(title="RAG 文档问答", version="1.0.0")
+# ---- 限流 / 缓存参数（防止别人刷爆你的 API 额度）----
+RATE_LIMIT = 20          # 每个 IP 每 WINDOW 秒最多几次 /ask
+RATE_WINDOW = 60
+CACHE_TTL = 600          # 同一问题缓存 10 分钟
+CACHE_MAX = 200
+
+logger = logging.getLogger("rag_api")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+
+
+def seed_if_empty() -> None:
+    """向量库为空时，用 samples/ 里的文档自动初始化。
+
+    为什么需要：chroma_db/ 被 .gitignore 排除了，平台从 git 克隆时没有这个目录。
+    不做这一步，部署完打开就是一个空库，任何问题都会被拒答。
+    """
+    client = chromadb.PersistentClient(path=DB_PATH)
+    try:
+        count = client.get_collection(COLLECTION).count()
+    except Exception:                             # noqa: BLE001
+        count = 0
+
+    if count > 0:
+        logger.info("向量库已有 %d 条记录", count)
+        return
+
+    samples = Path("samples")
+    if not samples.exists():
+        logger.warning("向量库为空，且没有 samples/ 目录，只能靠手动上传")
+        return
+
+    logger.info("向量库为空，开始从 samples/ 初始化（首次启动会慢几秒）")
+    ok = 0
+    for p in sorted(samples.iterdir()):
+        if p.suffix.lower() not in ALLOWED:
+            continue
+        try:
+            chars, chunks = ingest_file(p)
+            ok += 1
+            logger.info("  %s → %d 字 / %d 块", p.name, chars, chunks)
+        except HTTPException as exc:
+            logger.warning("  跳过 %s：%s", p.name, exc.detail)
+    logger.info("初始化完成，共入库 %d 份文档", ok)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    try:
+        seed_if_empty()
+    except Exception:                             # noqa: BLE001
+        logger.exception("初始化失败，服务仍然启动（只是库里没数据）")
+    yield
+
+
+app = FastAPI(title="RAG 文档问答", version="1.0.0", lifespan=lifespan)
+
+# ---------------------------------------------------------------- 限流
+_buckets: dict[str, deque] = defaultdict(deque)
+
+
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    """滑动窗口限流：只限制 /ask，静态资源和文档不受影响。"""
+    if not request.url.path.startswith("/ask"):
+        return await call_next(request)
+
+    ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    bucket = _buckets[ip]
+
+    while bucket and now - bucket[0] > RATE_WINDOW:
+        bucket.popleft()
+
+    if len(bucket) >= RATE_LIMIT:
+        return JSONResponse(
+            status_code=429,
+            content={"detail": f"请求太频繁（{RATE_LIMIT} 次/{RATE_WINDOW} 秒），请稍后再试"},
+        )
+
+    bucket.append(now)
+    return await call_next(request)
+
+
+# ---------------------------------------------------------------- 答案缓存
+_cache: dict[str, dict] = {}
+
+
+def cache_get(key: str) -> dict | None:
+    item = _cache.get(key)
+    if not item:
+        return None
+    if time.time() - item["ts"] > CACHE_TTL:
+        _cache.pop(key, None)
+        return None
+    return item
+
+
+def cache_put(key: str, sources: list, answer: str) -> None:
+    if not answer:
+        return
+    _cache[key] = {"sources": sources, "answer": answer, "ts": time.time()}
+    if len(_cache) > CACHE_MAX:
+        oldest = min(_cache, key=lambda k: _cache[k]["ts"])
+        _cache.pop(oldest, None)
+
 
 # ---------------------------------------------------------------- 模型客户端
 _client: AsyncOpenAI | None = None
@@ -179,6 +290,14 @@ async def upload(file: UploadFile = File(...)) -> dict:
 @app.post("/ask")
 async def ask(req: AskRequest) -> StreamingResponse:
     async def gen():
+        # 缓存命中：同一问题不重复烧 token
+        cached = cache_get(req.question.strip())
+        if cached:
+            yield sse({"type": "sources", "sources": cached["sources"]})
+            yield sse({"type": "delta", "text": cached["answer"]})
+            yield sse({"type": "done"})
+            return
+
         try:
             searcher = get_searcher()
             hits = searcher.hybrid(req.question, k=req.k)
@@ -218,21 +337,17 @@ async def ask(req: AskRequest) -> StreamingResponse:
         ctx, used = build_context(hits)
 
         # 先发来源，前端可以先渲染卡片，再逐字出答案
-        yield sse(
+        source_payload = [
             {
-                "type": "sources",
-                "sources": [
-                    {
-                        "id": h.idx,
-                        "doc_id": h.doc_id,
-                        "page_no": h.page_no,
-                        "section": h.section,
-                        "sim": round(h.sim, 3),
-                    }
-                    for h in used
-                ],
+                "id": h.idx,
+                "doc_id": h.doc_id,
+                "page_no": h.page_no,
+                "section": h.section,
+                "sim": round(h.sim, 3),
             }
-        )
+            for h in used
+        ]
+        yield sse({"type": "sources", "sources": source_payload})
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -244,6 +359,7 @@ async def ask(req: AskRequest) -> StreamingResponse:
             },
         ]
 
+        pieces: list[str] = []
         try:
             stream = await get_llm().chat.completions.create(
                 model=MODEL,
@@ -256,10 +372,12 @@ async def ask(req: AskRequest) -> StreamingResponse:
                 if chunk.choices:
                     piece = chunk.choices[0].delta.content
                     if piece:
+                        pieces.append(piece)
                         yield sse({"type": "delta", "text": piece})
         except Exception as exc:                  # noqa: BLE001
             yield sse({"type": "error", "message": f"生成失败：{exc}"})
 
+        cache_put(req.question.strip(), source_payload, "".join(pieces))
         yield sse({"type": "done"})
 
     return StreamingResponse(

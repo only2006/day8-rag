@@ -1,0 +1,26 @@
+# 依赖与虚拟环境（镜像里会用 uv sync 重建）
+.venv
+
+# 密钥：绝对不能进镜像
+.env
+.env.*
+
+# Git 历史
+.git
+.gitignore
+
+# Python 缓存
+__pycache__
+*.pyc
+
+# 上传的临时文件（运行时才需要）
+data/uploads
+
+# 注意：samples/ 必须保留！首次启动要靠它初始化向量库
+# （chroma_db/ 在 .gitignore 里，平台从 git 克隆时拿不到）
+
+# 文档与测试脚本，不影响运行
+docs
+*.md
+test_*.py
+exp_*.py
