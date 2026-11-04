@@ -15,3 +15,7 @@ wheels/
 
 # 生成的向量库（由 ingest.py 生成，可重跑再生，不入库）
 chroma_db/
+
+# 运行时上传的文件（由 /upload 接口产生，不入库）
+data/
+test_upload_doc.txt
