@@ -53,8 +53,8 @@ flowchart TD
 uv sync
 
 # 配置 .env（参考 .env.example）
-#   DEEPSEEK_API_KEY=<你的密钥>
-#   SILICONFLOW_API_KEY=<你的密钥>
+#   DEEPSEEK_API_KEY=your_key_here
+#   SILICONFLOW_API_KEY=your_key_here
 #   EMBED_BACKEND=api
 #   EMBED_MODEL=BAAI/bge-m3
 
