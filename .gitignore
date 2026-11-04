@@ -19,3 +19,7 @@ chroma_db/
 # 运行时上传的文件（由 /upload 接口产生，不入库）
 data/
 test_upload_doc.txt
+
+# 空库启动验证产生的临时库与日志（Day14 本地验证，不入库）
+chroma_db_seedtest/
+seed_*.log
