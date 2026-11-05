@@ -22,7 +22,7 @@ EXPOSE 8000
 
 # 平台靠这个判断服务是否活着
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status==200 else 1)"
+    CMD python -c "import urllib.request,sys,os; p=os.environ.get('PORT','8000'); sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{p}/health', timeout=3).status==200 else 1)"
 
 # 平台会注入 PORT，写死 8000 可能绑不上
 CMD ["sh", "-c", "uvicorn rag_api:app --host 0.0.0.0 --port ${PORT:-8000}"]
