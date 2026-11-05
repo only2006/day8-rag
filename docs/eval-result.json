@@ -1,0 +1,503 @@
+[
+  {
+    "id": "F01",
+    "q": "登录功能改了什么",
+    "category": "事实型",
+    "expect_refusal": false,
+    "answer": "登录模块完成了重构，接口平均响应时间从 320ms 降到 110ms [1]。",
+    "refused": false,
+    "top_sim": 0.621,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "F02",
+    "q": "接口响应时间优化了多少",
+    "category": "事实型",
+    "expect_refusal": false,
+    "answer": "接口平均响应时间从 320ms 降到 110ms，优化了 210ms（约 66%）[1]。",
+    "refused": false,
+    "top_sim": 0.749,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "F03",
+    "q": "支付出问题找谁解决",
+    "category": "事实型",
+    "expect_refusal": false,
+    "answer": "第三方支付接口偶发超时，已联系厂商排查 [1]。",
+    "refused": false,
+    "top_sim": 0.662,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "F04",
+    "q": "谁负责前端",
+    "category": "表格数字",
+    "expect_refusal": false,
+    "answer": "小明负责前端，状态为进行中 [1]。",
+    "refused": false,
+    "top_sim": 0.53,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "F05",
+    "q": "小刚在做什么任务",
+    "category": "表格数字",
+    "expect_refusal": false,
+    "answer": "小刚的任务是测试，状态为未开始 [1]。",
+    "refused": false,
+    "top_sim": 0.545,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "S01",
+    "q": "钱付不出去卡住了怎么办",
+    "category": "同义改写",
+    "expect_refusal": false,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.58,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [],
+    "cite_ok": true,
+    "passed": false,
+    "reason": "误拒答·模型拒答"
+  },
+  {
+    "id": "S02",
+    "q": "这个杯子第一次用之前要注意什么",
+    "category": "同义改写",
+    "expect_refusal": false,
+    "answer": "第一次使用前需要先充满电 [1]。",
+    "refused": false,
+    "top_sim": 0.512,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "P01",
+    "q": "容量最大的那款是多少毫升",
+    "category": "产品参数",
+    "expect_refusal": false,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.471,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": false,
+    "reason": "误拒答·阈值拦截"
+  },
+  {
+    "id": "P02",
+    "q": "哪个型号防水级别最高",
+    "category": "产品参数",
+    "expect_refusal": false,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.483,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": false,
+    "reason": "误拒答·阈值拦截"
+  },
+  {
+    "id": "P03",
+    "q": "CW-200 的电池续航多久",
+    "category": "产品参数",
+    "expect_refusal": false,
+    "answer": "CW-200 的电池续航为 14 天 [1]。",
+    "refused": false,
+    "top_sim": 0.609,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "L01",
+    "q": "中控怎么恢复出厂设置",
+    "category": "长文档",
+    "expect_refusal": false,
+    "answer": "配置严重错乱且无法通过后台修正时，可执行恢复出厂设置，这是最后手段 [1]。操作前请确认已导出备份密钥，否则恢复后需重新逐台配对 [1]。\n\n恢复出厂会清空所有场景、绑定关系与网络设置，但不影响已写入设备固件的底层驱动 [1]。恢复完成后网关回到配网模式，整个过程约三分钟，期间指示灯快闪，结束后重新进入初始化向导 [1]。",
+    "refused": false,
+    "top_sim": 0.657,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "L02",
+    "q": "设备离线了怎么排查",
+    "category": "长文档",
+    "expect_refusal": false,
+    "answer": "设备离线排查可参考以下要点：\n\n- 先按“由近及远”原则排查：确认设备供电，再检查网络，最后看软件配置 [2]。\n- 设备频繁离线大多与信号强度有关：打开后台信号质量页，若某设备链路质量低于30%，优先增加中继或调整网关位置 [1]。\n- 少数情况是电池耗尽：低电量节点会降频，表现为响应迟钝而非完全掉线 [1]。\n- 若设备彻底无响应：可短按复位键让其重新广播；注意“复位”只清空网络配置，“恢复出厂”会删除全部场景 [1]。\n\n资料未涉及其他离线原因的具体排查步骤。",
+    "refused": false,
+    "top_sim": 0.712,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      2,
+      1,
+      1,
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "R01",
+    "q": "公司的年假政策是什么",
+    "category": "应拒答",
+    "expect_refusal": true,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.418,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "正确拒答"
+  },
+  {
+    "id": "R02",
+    "q": "Python 的 GIL 是什么",
+    "category": "应拒答",
+    "expect_refusal": true,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.389,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "正确拒答"
+  },
+  {
+    "id": "R03",
+    "q": "2024 年诺贝尔文学奖得主是谁",
+    "category": "应拒答",
+    "expect_refusal": true,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.269,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "正确拒答"
+  },
+  {
+    "id": "F06",
+    "q": "后端那部分收尾了吗",
+    "category": "事实型",
+    "expect_refusal": false,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.575,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [],
+    "cite_ok": true,
+    "passed": false,
+    "reason": "误拒答·模型拒答"
+  },
+  {
+    "id": "F07",
+    "q": "录像用的存储卡最大能插多大的",
+    "category": "事实型",
+    "expect_refusal": false,
+    "answer": "摄像头支持插入最大 256GB 的 microSD 卡进行本地循环录制，卡满后会自动覆盖最早片段 [1]。",
+    "refused": false,
+    "top_sim": 0.733,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "F08",
+    "q": "门锁换一次电池大概能用多久",
+    "category": "事实型",
+    "expect_refusal": false,
+    "answer": "官方标称续航约八个月，实际续航受开门频次影响 [2]。电量低于20%时App会推送低电量提醒，请及时更换 [2]。",
+    "refused": false,
+    "top_sim": 0.79,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      2,
+      2
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "S03",
+    "q": "天一黑画面就变黑白，是坏掉了吗",
+    "category": "同义改写",
+    "expect_refusal": false,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.543,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [],
+    "cite_ok": true,
+    "passed": false,
+    "reason": "误拒答·模型拒答"
+  },
+  {
+    "id": "S04",
+    "q": "主机能塞进家里那个弱电箱吗",
+    "category": "同义改写",
+    "expect_refusal": false,
+    "answer": "不建议把主机（网关）塞进弱电箱，尤其是金属弱电箱：金属屏蔽会让无线性能下降超过一半 [1]。建议放在房屋中心、离地一米以上的开阔处，并保证供电稳定、散热良好 [1]。",
+    "refused": false,
+    "top_sim": 0.565,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1,
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "S05",
+    "q": "路由器开了双频合一，锁一直连不上怎么办",
+    "category": "同义改写",
+    "expect_refusal": false,
+    "answer": "路由器开启双频合一后，门锁可能连不上，因为门锁仅支持 2.4GHz Wi-Fi，不支持 5GHz [1]。请先在路由器后台拆分频段，或临时关闭 5GHz [1]；然后长按设置键三秒进入配网模式，重新配网 [1]。",
+    "refused": false,
+    "top_sim": 0.706,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1,
+      1,
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "S06",
+    "q": "以后把设备转给别人，得留着什么东西当凭证",
+    "category": "同义改写",
+    "expect_refusal": false,
+    "answer": "需要保留初始化配置结束时生成的备份密钥文件，它是日后迁移设备所有权的唯一凭证，务必离线保存到 U 盘或打印纸质件 [1]。",
+    "refused": false,
+    "top_sim": 0.539,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "P04",
+    "q": "最入门那款杯子能装多少",
+    "category": "产品参数",
+    "expect_refusal": false,
+    "answer": "最入门款是 CW-100，容量为 400ml [1]。",
+    "refused": false,
+    "top_sim": 0.52,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "P05",
+    "q": "顶配那款充一次电能撑几天",
+    "category": "产品参数",
+    "expect_refusal": false,
+    "answer": "顶配型号 CW-300 的电池续航为 30 天 [1]。",
+    "refused": false,
+    "top_sim": 0.54,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "L03",
+    "q": "按一下复位键会不会把设好的场景全删了",
+    "category": "长文档",
+    "expect_refusal": false,
+    "answer": "按一下复位键通常不会删除场景。复位键主要用于让传感器进入配对模式，需要长按五秒 [1]。只有执行恢复出厂设置才会清空所有场景、绑定关系与网络设置 [3]。如果担心误操作，建议先导出备份密钥 [3]，并定期备份场景规则 [4]。",
+    "refused": false,
+    "top_sim": 0.568,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1,
+      3,
+      3,
+      4
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "L04",
+    "q": "第一次进后台，密码最少要设多少位",
+    "category": "长文档",
+    "expect_refusal": false,
+    "answer": "第一次登录后台时，第一步是修改默认管理员密码，密码长度不得低于十二位 [1]。",
+    "refused": false,
+    "top_sim": 0.681,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "L05",
+    "q": "子设备离网关最远能放多远",
+    "category": "长文档",
+    "expect_refusal": false,
+    "answer": "Zigbee 类子设备单跳覆盖半径约十米，穿墙后会显著下降；大平层或多层住宅需部署中继节点 [1]。",
+    "refused": false,
+    "top_sim": 0.644,
+    "threshold_blocked": false,
+    "sources": 4,
+    "cited": [
+      1
+    ],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "通过"
+  },
+  {
+    "id": "R04",
+    "q": "公司年终奖按几个月发",
+    "category": "应拒答",
+    "expect_refusal": true,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.466,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "正确拒答"
+  },
+  {
+    "id": "R05",
+    "q": "广州明天会不会下雨",
+    "category": "应拒答",
+    "expect_refusal": true,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.393,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "正确拒答"
+  },
+  {
+    "id": "R06",
+    "q": "公司的公积金缴存比例是多少",
+    "category": "应拒答",
+    "expect_refusal": true,
+    "answer": "资料里没有找到相关信息",
+    "refused": true,
+    "top_sim": 0.409,
+    "threshold_blocked": true,
+    "sources": 0,
+    "cited": [],
+    "cite_ok": true,
+    "passed": true,
+    "reason": "正确拒答"
+  }
+]
